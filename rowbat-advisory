@@ -1,0 +1,86 @@
+Security Advisory: Critical Authentication Bypass (JWT Signature Confusion) in Rowboat
+
+Date: February 16, 2026
+Researcher: David Gilmore
+Severity: Critical (CVSS v3.1: 9.8)
+Project: Rowboat (Experimental Tools Webhook)
+Vulnerability Type: Improper Verification of Cryptographic Signature (CWE-347)
+Affected Component: apps/experimental/tools_webhook/app.py
+
+1. Executive Summary
+
+During a security audit of the Rowboat experimental infrastructure, a critical authentication bypass was identified in the tools_webhook component. The vulnerability stems from an improper implementation of JSON Web Token (JWT) validation, where the server fails to verify the integrity of the cryptographic signature. This allows an unauthenticated remote attacker to forge administrative tokens and gain full access to sensitive tool-call functionalities.
+
+2. Vulnerability Details
+
+2.1 Technical Description
+
+The Flask application utilizes JWT parsing logic that respects the alg (algorithm) header provided by the client. By specifying "alg": "none", an attacker forces the server to skip signature verification entirely. This is a classic "None Algorithm" attack where the application assumes the token is valid because it was told no signature was required.
+
+Vulnerable File: apps/experimental/tools_webhook/app.py
+
+Vulnerable Logic: The server accepts the X-Tools-JWE header and processes the payload without enforcing a secure cryptographic algorithm.
+
+2.2 Threat Impact
+
+Successful exploitation grants the attacker the ability to:
+
+Identity Impersonation: Forge the sub (subject) claim to impersonate any user or service account.
+
+Unauthorized Execution: Execute arbitrary tool commands within the Rowboat environment.
+
+Full Bypass: Completely bypass authentication requirements for the /tool_call endpoint.
+
+3. Proof of Concept (PoC)
+
+3.1 Reproduction Steps
+
+Environment Setup: Ensure the Rowboat tools webhook service is active (typically on port 5000).
+
+Payload Generation: Craft a malicious JWT using a header that requests the none algorithm.
+
+Header (Base64): eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0 (Decodes to: {"alg":"none","typ":"JWT"})
+
+Payload (Base64): e30 (Decodes to: {})
+
+Attack Execution: Send a POST request to the vulnerable endpoint with the forged token in the X-Tools-JWE header:
+
+curl -i -X POST [http://127.0.0.1:5000/tool_call](http://127.0.0.1:5000/tool_call) \
+     -H "Content-Type: application/json" \
+     -H "X-Tools-JWE: eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.e30.signature" \
+     -d '{"content": "jwe_exploit_test"}'
+
+
+3.2 Evidence
+
+The server logs confirm the receipt of the "none" algorithm token and return a 200 OK status, proving the payload was processed without signature validation. Terminal logs indicate that the X-Tools-JWE header was accepted and the internal tool logic was triggered.
+
+4. Remediation Recommendations
+
+4.1 Immediate Mitigation
+
+Algorithm Whitelisting: Update the JWT verification logic to explicitly allow only secure, pre-defined algorithms (e.g., HS256 or RS256).
+
+Reject "None": Implement a strict check to reject any token where the alg field is set to none, None, or any case-variation.
+
+4.2 Secure Code Example
+
+The tool_call() function should be updated to enforce a specific algorithm during the decoding process:
+
+# SECURE IMPLEMENTATION using PyJWT
+import jwt
+
+# Strictly enforces HS256 and verifies the signature against a secret key
+try:
+    decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+except jwt.InvalidTokenError:
+    return "Unauthorized", 401
+
+
+5. Appendix
+
+Scanner References: OWASP A02:2021 – Cryptographic Failures.
+
+Vulnerability History: This attack vector is similar to CVE-2020-28042 (Null Signature Attack).
+
+This report was generated for the purpose of responsible disclosure.
