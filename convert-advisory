@@ -1,0 +1,79 @@
+Security Advisory: Path Traversal (CWE-22) in p2r3/convert
+
+Date: March 31, 2026
+Researcher: David Gilmore
+Project: p2r3/convert
+Affected Component: buildCache.js
+Severity: High (CVSS v3.1: 7.5)
+Vulnerability Type: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')
+
+1. Executive Summary
+
+A security vulnerability has been identified in the buildCache.js script of the p2r3/convert repository. The application implements a custom file server using the Bun.serve API that fails to properly sanitize user-supplied path parameters. This oversight allows an attacker to perform a Directory Traversal attack, potentially gaining unauthorized read access to sensitive files residing outside the intended web root directory (/dist).
+
+2. Technical Vulnerability Description
+
+The vulnerability exists in the fetch handler of the Bun.serve instance. The application logic extracts the pathname directly from the request URL and performs a simple string replacement to remove the /convert/ prefix. The resulting unsanitized string is then passed directly into a file system "sink" (Bun.file).
+
+Vulnerable Code Snippet
+
+In buildCache.js (Lines 5-6):
+
+// buildCache.js - Lines 5-6
+const path = new URL(req.url).pathname.replace("/convert/", "") || "index.html";
+const file = Bun.file(`${__dirname}/dist/${path}`);
+
+
+The application does not validate that the resolved path remains within the ${__dirname}/dist/ boundary. By injecting traversal sequences (../), an attacker can manipulate the file resolution logic to access parent directories relative to the dist folder.
+
+3. Proof of Concept (PoC)
+
+To reproduce the vulnerability in a development environment:
+
+Start the server: bun buildCache.js.
+
+Execute the attack: Use a crafted curl request with the --path-as-is flag to prevent the client from pre-normalizing the dots.
+
+Attack Payload
+
+curl --path-as-is http://localhost:8080/convert/../../package.json
+
+
+Observed Result
+
+The server resolves the path to the project root and returns the contents of package.json, which is located outside the intended /dist directory. This confirms the server is following the traversal instructions without filtering.
+
+4. Impact Assessment
+
+Successful exploitation of this vulnerability leads to unauthorized Information Disclosure. Potential impacts include:
+
+Exposure of Configuration Files: Access to package.json, tsconfig.json, or .env files which may contain sensitive metadata, dependency information, or secrets.
+
+Source Code Leakage: Unauthorized downloading of the application's source files.
+
+System File Access: In certain environments, this could lead to the exposure of sensitive system files if the service account has sufficient permissions.
+
+5. Remediation Recommendation
+
+It is recommended to implement path validation and normalization. The application should resolve the absolute path and verify that it still resides within the intended directory.
+
+Recommended Fix
+
+Update the fetch handler to normalize the path and check the root boundary:
+
+import { join, resolve, normalize } from "path";
+
+// ... inside fetch(req)
+const requestedPath = new URL(req.url).pathname.replace("/convert/", "") || "index.html";
+const rootDir = resolve(__dirname, "dist");
+const targetPath = resolve(rootDir, normalize(requestedPath));
+
+// Verify the resolved path is still inside the rootDir
+if (!targetPath.startsWith(rootDir)) {
+  return new Response("Forbidden", { status: 403 });
+}
+
+const file = Bun.file(targetPath);
+
+
+This report was generated for the purpose of responsible disclosure.
