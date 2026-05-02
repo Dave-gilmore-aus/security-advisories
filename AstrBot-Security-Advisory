@@ -1,4 +1,6 @@
-Hardcoded Credentials & Timing Attack in AstrBot Dashboard
+Hardcoded Credentials & Timing Attack in AstrBot Dashboard (CVE-2026-7579)
+
+Link to CVE: https://vuldb.com/vuln/360420
 
 Disclosed to Dev Date: Feb 14, 2026
 
