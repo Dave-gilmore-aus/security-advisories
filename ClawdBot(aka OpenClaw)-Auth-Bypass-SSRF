@@ -7,6 +7,9 @@ Disclosed to developer: 27/1/26
 Executive Summary
 A critical vulnerability chain was discovered in ClawdBot's BlueBubbles extension. A Type Juggling error in the webhook authentication logic allows unauthenticated remote attackers to bypass security controls. This bypass can be leveraged to execute a Server-Side Request Forgery (SSRF) attack, resulting in the theft of administrative credentials and potential Remote Command Execution (RCE).
 Technical Deep Dive
+
+The flaw occurs due to string interpolation of an uninitialized variable, where undefined is cast to the literal string 'undefined', effectively creating a hardcoded credential.
+
 1. The Entry Point: Type Juggling (CWE-843)
 The vulnerability exists in extensions/bluebubbles/src/monitor.ts. The application compares the inbound Authorization header against an uninitialized configuration variable. If a password is not explicitly set, the variable defaults to undefined.
 
