@@ -63,8 +63,8 @@ return token === config.password;
 
 
 ### 🛡️ Countermeasures & Official Patch
-The vulnerability was formally addressed in the **v2026.2.12** release. The fix involved the deprecation of the vulnerable BlueBubbles extension logic and the implementation of a unified, strict authentication middleware.
+The vulnerability was formally addressed in **PR #13787**. The fix involved removing a "loopback trust" shortcut in the authentication middleware that allowed requests originating from 127.0.0.1 (common in reverse-proxy deployments) to skip shared-secret verification.
 
-* **Official Patch/Commit:** [249826f](https://github.com/openclaw/openclaw/commit/249826f4f1d32657e8f5223e7f9175421526493a)
-* **Resolution Note:** The maintainer removed the uninitialized configuration fallback and implemented a constant-time comparison for all Bearer tokens.
-* **Release Notes:** [OpenClaw v2026.2.12](https://github.com/openclaw/openclaw/releases/tag/v2026.2.12)
+* **Official Fix (PR):** [PR #13787](https://github.com/openclaw/openclaw/pull/13787)
+* **Linked Issue:** [Issue #13786](https://github.com/openclaw/openclaw/issues/13786)
+* **Resolution Note:** The production change removes the insecure loopback check in `extensions/bluebubbles/src/monitor.ts`, ensuring all external callers must provide a valid Bearer token regardless of the origin IP.
