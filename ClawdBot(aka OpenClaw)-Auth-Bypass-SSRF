@@ -1,4 +1,4 @@
-Security Disclosure: Critical Auth Bypass & Credential Leak in ClawdBot (now known as OpenClaw)
+Security Disclosure: Critical Auth Bypass & Credential Leak in ClawdBot (now known as OpenClaw) (CVE-2026-8305)
 Researcher: David Gilmore
 Target: ClawdBot (v2026.1.24)
 Severity: CRITICAL (CVSS 9.8) Status: Patched / Public Disclosure
