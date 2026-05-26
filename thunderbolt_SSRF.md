@@ -55,5 +55,6 @@ An attacker can weaponize this SSRF vulnerability to achieve the following:
 
 ## Timeline
 
-- **April 22, 2026:** Initial private disclosure initiated via GitHub Security Advisory to the Thunderbolt maintainers.
-- **May 26, 2026:** 34 days elapsed with no response or acknowledgment from the maintainers. Public disclosure published to establish tracking and user awareness.
+--**March 10, 2026:** Initial email to maintainers to advise of vulnerability.
+- **April 22, 2026:** Disclosure initiated via GitHub Security Advisory to the Thunderbolt maintainers.
+- **May 26, 2026:** 77 days elapsed with no response or acknowledgment from the maintainers. Public disclosure published to establish tracking and user awareness.
