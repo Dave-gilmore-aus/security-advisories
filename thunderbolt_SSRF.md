@@ -1,6 +1,5 @@
 # Security Advisory: Server-Side Request Forgery (SSRF) via Link Preview Endpoint in Thunderbolt
-
-**Date:** May 26, 2026  
+ 
 **Author:** Dave-gilmore-aus  
 **Software:** Thunderbolt  
 **Affected Versions:** 1.0.0  
@@ -53,8 +52,4 @@ An attacker can weaponize this SSRF vulnerability to achieve the following:
 - **Firewall & ACL Circumvention:** Use the trusted backend server as a proxy to query restricted cloud metadata endpoints (e.g., AWS IMDSv1/v2 at `169.254.169.254` or GCP metadata services) to potentially harvest IAM credentials and tokens.
 - **Information Disclosure:** Enumerate local API structures and potentially leak software versions or private data exposed on internal networks.
 
-## Timeline
 
---**March 10, 2026:** Initial email to maintainers to advise of vulnerability.
-- **April 22, 2026:** Disclosure initiated via GitHub Security Advisory to the Thunderbolt maintainers.
-- **May 26, 2026:** 77 days elapsed with no response or acknowledgment from the maintainers. Public disclosure published to establish tracking and user awareness.
